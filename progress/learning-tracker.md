@@ -3,7 +3,7 @@
 **Last Updated**: 2026-05-16
 **Start Date**: 2026-05-16
 **Target Completion**: 2027-01-16 (8 months)
-**Days Elapsed**: 0
+**Days Elapsed**: 1
 
 This single document tracks ALL your LLM Data Engineer learning progress, including:
 - Phase completion status and sub-goal tracking
@@ -15,18 +15,18 @@ This single document tracks ALL your LLM Data Engineer learning progress, includ
 
 ## Quick Stats
 
-📊 **Overall Progress**: 0/25 sub-goals = **0%**
+📊 **Overall Progress**: 3/25 sub-goals started = **12%**
 🎯 **Current Phase**: Phase 1 — Python Engineering Foundation
-📅 **Days Remaining**: ~245 days
-💻 **Sessions Completed**: 0
+📅 **Days Remaining**: ~244 days
+💻 **Sessions Completed**: 1
 
 ---
 
 ## Phase Progress Summary
 
-| Phase | Timeframe | Sub-goals | Completed | Status | Priority |
-|-------|-----------|-----------|-----------|--------|----------|
-| **P1: Python Engineering** | Month 1-2 | 0/6 | 0% | ⚪ Not Started | **ACTIVE** |
+| Phase | Timeframe | Sub-goals | Progress | Status | Priority |
+|-------|-----------|-----------|----------|--------|----------|
+| **P1: Python Engineering** | Month 1-2 | 3/6 started | ~25% | 🟡 In Progress | **ACTIVE** |
 | **P2: Multimodal Data Engine** | Month 3-4 | 0/5 | 0% | ⚪ Not Started | — |
 | **P3: Training Data Construction** | Month 5-6 | 0/5 | 0% | ⚪ Not Started | — |
 | **P4: Evaluation-Driven Development** | Month 7-8 | 0/5 | 0% | ⚪ Not Started | — |
@@ -40,25 +40,34 @@ This single document tracks ALL your LLM Data Engineer learning progress, includ
 
 ### Sub-goal Progress
 
-- [ ] **P1.1 — Advanced Python** (0%)
-  - Decorators, generators, context managers, descriptors
-  - Reference: *Fluent Python* by Luciano Ramalho
+- [x] **P1.1 — Advanced Python** 🟡 (25%)
+  - Generators: `stream_events_in_batches` — memory-efficient batch streaming
+  - Still need: decorators, context managers, descriptors in practice
+  - Reference: *Fluent Python* (already read — need practical application)
 
-- [ ] **P1.2 — Type Hints (Type Annotations)** (0%)
-  - mypy strict mode, Protocol, TypedDict, Generic, overload
-  - Goal: 100% type coverage in milestone project
+- [x] **P1.2 — Type Hints (Type Annotations)** 🟡 (50%)
+  - TypedDict for row-level schemas ✅
+  - Protocol for structural subtyping (DI) ✅
+  - mypy strict mode passing ✅
+  - Still need: Generic, overload, TypeVar in practice
+  - Reference: [mypy cheat sheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
 
 - [ ] **P1.3 — Modern AI Toolchain** (0%)
-  - Cursor / GitHub Copilot, prompt-driven programming
-  - Claude Code mastery for development workflow
+  - Will cover as we use Claude Code throughout
 
-- [ ] **P1.4 — Code Quality & Linting** (0%)
-  - ruff (linter + formatter), pre-commit hooks, pyproject.toml
+- [x] **P1.4 — Code Quality & Linting** 🟡 (60%)
+  - ruff configured as linter + formatter ✅
+  - pyproject.toml with all tool configs ✅
+  - pre-commit config written ✅
+  - Still need: `pre-commit install` and first hook execution
   - Reference: [ruff docs](https://docs.astral.sh/ruff/), [pre-commit](https://pre-commit.com/)
 
-- [ ] **P1.5 — Testing with pytest** (0%)
-  - Fixtures, parametrize, mocking for data pipelines
-  - Goal: ≥ 80% test coverage
+- [x] **P1.5 — Testing with pytest** 🟡 (40%)
+  - Fixtures in conftest.py ✅
+  - Protocol-based mock data sources ✅
+  - 27 tests, 99% coverage ✅
+  - Edge case tests (empty inputs, boundary dates, missing profiles) ✅
+  - Still need: parametrize with complex cases, property-based testing
 
 - [ ] **P1.6 — Docker** (0%)
   - Multi-stage builds, docker-compose, .dockerignore
@@ -68,132 +77,23 @@ This single document tracks ALL your LLM Data Engineer learning progress, includ
 
 | Requirement | Status | Notes |
 |-------------|--------|-------|
-| Task selection (medium complexity from prior Spark work) | ⚪ Not started | |
-| 100% type annotations (mypy strict) | ⚪ Not started | |
-| pre-commit hooks (ruff, mypy, pytest) | ⚪ Not started | |
-| Unit tests (≥ 80% coverage) | ⚪ Not started | |
+| Task selection (feature engineering pipeline) | 🟢 Done | 3 users, 35-day window, click/purchase events + profiles |
+| 100% type annotations (mypy strict) | 🟢 Done | 0 errors in strict mode across 4 source files |
+| pre-commit hooks (ruff, mypy, pytest) | 🟡 Config written | Need to `pre-commit install` |
+| Unit tests (≥ 80% coverage) | 🟢 Done | 27 tests, 99% coverage |
 | Docker runtime environment | ⚪ Not started | |
 | Performance comparison vs Spark | ⚪ Not started | |
 
 ---
 
-## Phase 2: Multimodal Data Computing Engine (Months 3-4)
-
-**Goal**: Transition from Spark batch to Ray distributed AI computing.
-**Milestone**: Build complete pretraining data cleaning pipeline on Common Crawl / Wudao subset.
-
-- [ ] **P2.1 — Ray Core** (0%)
-  - Tasks, actors, object store, scheduling vs Spark executors
-
-- [ ] **P2.2 — Ray Data** (0%)
-  - Datasets, transforms, pipelines, shuffle strategies
-
-- [ ] **P2.3 — Text Processing Operators** (0%)
-  - Language detection (fasttext/lingua), PCL filtering, MinHash LSH dedup
-
-- [ ] **P2.4 — Visual/Cross-modal Operators** (0%)
-  - CLIP score, feature extraction
-
-- [ ] **P2.5 — Pipeline Performance & Monitoring** (0%)
-  - Shuffle monitoring, throughput tracking, Ray Dashboard
-
-### Milestone Project: Pretraining Data Cleaning Pipeline
-
-| Stage | Status | Notes |
-|-------|--------|-------|
-| Raw data acquisition (Common Crawl / Wudao) | ⚪ Not started | |
-| HTML → Text extraction | ⚪ Not started | |
-| Language detection & filtering | ⚪ Not started | |
-| PCL (toxicity/bias) filtering | ⚪ Not started | |
-| MinHash LSH deduplication | ⚪ Not started | |
-| Quality scoring & filtering | ⚪ Not started | |
-| JSONL formatted output | ⚪ Not started | |
-| Shuffle & throughput monitoring | ⚪ Not started | |
-| Performance tuning | ⚪ Not started | |
-
----
-
-## Phase 3: LLM Training Data Construction (Months 5-6)
-
-**Goal**: Master SFT and RLHF/DPO data construction logic.
-**Milestone**: Synthesize 2,000 high-quality SFT samples in Llama 3 / Qwen 2 format.
-
-- [ ] **P3.1 — Pretraining Data Composition** (0%)
-  - Data mixing strategies (code/encyclopedia/web ratios, DoReMi, DRO)
-
-- [ ] **P3.2 — SFT Data Synthesis** (0%)
-  - Self-Instruct, Evol-Instruct, LLM API batch generation
-
-- [ ] **P3.3 — Preference Data (DPO/RLHF)** (0%)
-  - Chosen/Rejected pair construction, prompt difficulty design
-
-- [ ] **P3.4 — Training Templates** (0%)
-  - Llama 3, Qwen 2 chat template, tokenization
-
-- [ ] **P3.5 — API-Driven Data Pipelines** (0%)
-  - Rate limiting, retries, cost tracking, async batch calls
-
-### Milestone Project: SFT Data Synthesis
-
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| Domain selection (medical / code generation) | ⚪ Not started | |
-| Prompt template design | ⚪ Not started | |
-| Self-Instruct / Evol-Instruct implementation | ⚪ Not started | |
-| LLM API integration (Claude / GPT-4) | ⚪ Not started | |
-| 2,000 QA pairs generated | ⚪ Not started | |
-| Output format: Llama 3 / Qwen 2 template | ⚪ Not started | |
-
----
-
-## Phase 4: Evaluation-Driven Development (Months 7-8)
-
-**Goal**: Build the "eval → find gaps → add data → improve → re-eval" closed loop.
-**Milestone**: Fine-tune Qwen2-7B, compare benchmarks, produce impact report.
-
-- [ ] **P4.1 — Benchmark Analysis** (0%)
-  - MMLU, GSM8K, HumanEval test set study
-
-- [ ] **P4.2 — LLM-as-a-Judge** (0%)
-  - Evaluation prompt design, pairwise comparison, rubric scoring
-
-- [ ] **P4.3 — Automated Evaluation Pipeline** (0%)
-  - Metrics tracking, regression detection
-
-- [ ] **P4.4 — Fine-tuning Practice** (0%)
-  - LLaMA-Factory + Qwen2-7B + Phase 3 data
-
-- [ ] **P4.5 — Data Quality Impact Analysis** (0%)
-  - Pre/post fine-tuning benchmark comparison, quantitative report
-
-### Milestone Project: Data Impact Analysis
-
-| Requirement | Status | Notes |
-|-------------|--------|-------|
-| Qwen2-7B baseline benchmarks | ⚪ Not started | |
-| Fine-tuning with LLaMA-Factory | ⚪ Not started | |
-| Fine-tuned model benchmarks | ⚪ Not started | |
-| Quantitative impact report | ⚪ Not started | |
-
----
-
 ## Knowledge Gaps
 
-### High Priority
-
-*None yet — will be populated from sessions*
-
 ### Medium Priority
-
-*None yet*
+- **Docker multi-stage builds** (P1.6): Not yet practiced. Will cover in next 2-3 sessions.
+- **pre-commit hook execution** (P1.4): Config exists but hooks not yet installed/run.
 
 ### Low Priority
-
-*None yet*
-
-### Recently Resolved
-
-*None yet*
+- **mypy type narrowing on union types** (P1.2): Encountered when accumulator dict values were `float | int | set[str]`. Resolved with `assert isinstance` guards pattern. Reinforce in later sessions.
 
 ---
 
@@ -202,36 +102,25 @@ This single document tracks ALL your LLM Data Engineer learning progress, includ
 ### Production Python
 | Skill | Proficiency | Last Practiced |
 |-------|-------------|----------------|
-| Type Hints (mypy strict) | Not assessed | — |
-| Decorators & Generators | Not assessed | — |
-| pytest (fixtures, mock, coverage) | Not assessed | — |
-| ruff / pre-commit | Not assessed | — |
-| Docker | Not assessed | — |
+| Type Hints — TypedDict | Developing | 2026-05-16 |
+| Type Hints — Protocol | Developing | 2026-05-16 |
+| Type Hints — mypy strict | Developing | 2026-05-16 |
+| Generators (yield) | Developing | 2026-05-16 |
+| pytest — fixtures | Developing | 2026-05-16 |
+| pytest — mock (Protocol-based) | Developing | 2026-05-16 |
+| ruff | Developing | 2026-05-16 |
+| pre-commit | Not started | — |
+| Docker | Not started | — |
 
 ### Distributed Computing
 | Skill | Proficiency | Last Practiced |
 |-------|-------------|----------------|
-| Spark (batch, SQL, RDD) | Strong (prior) | — |
+| Spark (batch, SQL, RDD, window) | Strong (prior) | — |
 | Ray Core | Not started | — |
 | Ray Data | Not started | — |
 
 ### LLM Data Engineering
-| Skill | Proficiency | Last Practiced |
-|-------|-------------|----------------|
-| Text deduplication (MinHash LSH) | Not started | — |
-| PCL/toxicity filtering | Not started | — |
-| CLIP score computation | Not started | — |
-| SFT data synthesis | Not started | — |
-| DPO preference data | Not started | — |
-| LLM-as-a-Judge | Not started | — |
-| Model fine-tuning | Not started | — |
-
-### Tools & APIs
-| Skill | Proficiency | Last Practiced |
-|-------|-------------|----------------|
-| Claude API / GPT-4 API | Not started | — |
-| HuggingFace ecosystem | Not started | — |
-| LLaMA-Factory | Not started | — |
+*Not started*
 
 ---
 
@@ -239,7 +128,7 @@ This single document tracks ALL your LLM Data Engineer learning progress, includ
 
 | Date | Phase | Topics | Duration | Notes |
 |------|-------|--------|----------|-------|
-| — | — | — | — | No sessions yet |
+| 2026-05-16 | P1.1,P1.2,P1.4,P1.5 | Project setup, TypedDict, Protocol, pytest, mypy strict | ~1.5h | 27 tests, 99% cov, mypy strict passes. Phase 1 milestone project scaffolded. |
 
 ---
 
