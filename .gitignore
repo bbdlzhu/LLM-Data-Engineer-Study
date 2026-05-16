@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.env
+
+# Docker
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (large files)
+data/
+*.parquet
+*.jsonl
+!samples/*.jsonl
+
+# Models
+models/
+checkpoints/
+*.bin
+*.safetensors
+!samples/*.safetensors
+
+# Claude
+.claude/
