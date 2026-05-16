@@ -1,42 +1,47 @@
-"""Type definitions for the feature engineering pipeline.
+"""特征工程流水线的类型定义。
 
-In Spark, you'd define schemas with StructType/StructField.
-In production Python, we use TypedDict for row-level contracts
-and Protocol for abstract interfaces (like Java interfaces).
+在 Spark 中，你用 StructType/StructField 定义 schema。
+在生产级 Python 中，我们用 TypedDict 定义行级数据契约，
+用 Protocol 定义抽象接口（类似 Java 的 interface）。
 """
 
 from typing import Protocol, TypedDict
 
 
 class RawEvent(TypedDict):
-    """A single user behavior event.
+    """单条用户行为事件。
 
-    Analogous to a Spark DataFrame row with schema:
-      user_id: LongType, event_type: StringType, timestamp: TimestampType, ...
+    对应 Spark DataFrame 的一行，schema 等价于：
+      user_id: StringType, event_type: StringType,
+      item_id: StringType, timestamp: TimestampType, value: DoubleType
     """
 
     user_id: str
     event_type: str  # "click", "view", "purchase", "add_to_cart"
     item_id: str
-    timestamp: str  # ISO 8601
-    value: float  # e.g., purchase amount, or 0 for non-purchase events
+    timestamp: str  # ISO 8601 格式
+    value: float  # 购买金额，非购买事件为 0.0
 
 
 class UserProfile(TypedDict):
-    """User demographic/profile data.
+    """用户画像/人口统计信息。
 
-    Analogous to a dimension table in a star schema.
+    对应星型模型中的维度表（dimension table）。
     """
 
     user_id: str
     age_group: str  # "18-24", "25-34", "35-44", "45+"
     gender: str
-    city_tier: str  # "T1", "T2", "T3"
-    registered_at: str  # ISO 8601
+    city_tier: str  # "T1", "T2", "T3" 城市等级
+    registered_at: str  # ISO 8601 格式，注册时间
 
 
 class WindowedFeature(TypedDict):
-    """Computed window-aggregated features for a single user at a reference date."""
+    """单个用户在某个参考日期上的窗口聚合特征。
+
+    这是 compute_windowed_features 的输出——如果熟悉 Spark，
+    这就是 groupBy("user_id").agg(...) 的结果中的一行。
+    """
 
     user_id: str
     reference_date: str
@@ -51,14 +56,15 @@ class WindowedFeature(TypedDict):
 
 
 class FeatureVector(TypedDict):
-    """Final output: one feature vector per user per reference date.
+    """最终输出：每个用户在每个参考日期上的一条特征向量。
 
-    This is what the downstream ML model consumes.
+    这是下游 ML 模型直接消费的数据格式。
+    包含原始窗口特征 + 衍生特征 + 编码后的类别特征 + 标签。
     """
 
     user_id: str
     reference_date: str
-    # Raw window features
+    # 原始窗口特征
     click_count_7d: int
     click_count_30d: int
     purchase_count_7d: int
@@ -67,40 +73,41 @@ class FeatureVector(TypedDict):
     total_spend_30d: float
     distinct_items_7d: int
     distinct_items_30d: int
-    # Derived features
+    # 衍生特征：7天相对30天的增长率
     click_growth_7d_to_30d: float
     spend_growth_7d_to_30d: float
-    # Encoded categorical features
+    # 编码后的类别特征
     age_group_encoded: int
     city_tier_encoded: int
-    # Target (for supervised learning)
-    label: int  # 1 if purchase within next 7 days, else 0
+    # 标签（监督学习用）：未来7天是否有购买
+    label: int
 
 
 class EventSource(Protocol):
-    """Abstract data source for raw events.
+    """原始事件数据的抽象数据源。
 
-    Protocol classes are Python's answer to Java interfaces.
-    They enable dependency injection for testing — in tests we
-    inject a mock source instead of hitting a real database.
+    Protocol 是 Python 对 Java interface 的回答。
+    使用 Protocol（结构化子类型）而非 ABC（名义子类型）的好处是：
+    任何拥有这些方法的对象都满足契约，无需显式继承。
+    这让依赖注入和 mock 测试变得极其自然。
 
-    Using Protocol (structural subtyping) rather than ABC (nominal subtyping)
-    means any object with these methods satisfies the contract — no explicit
-    inheritance needed. This is more Pythonic.
+    在 Spark 中，你不需要这个抽象——因为数据已经在 HDFS/Hive 里了，
+    你直接读就行。但在生产级 Python 中，我们用 Protocol 把"从哪读数据"
+    和"怎么处理数据"解耦，这样测试时注入 mock 源，不用连真实数据库。
     """
 
     def fetch_events(self, start_date: str, end_date: str) -> list[RawEvent]:
-        """Retrieve events in [start_date, end_date)."""
+        """获取 [start_date, end_date) 区间内的所有事件。"""
         ...
 
     def fetch_distinct_user_ids(self, start_date: str, end_date: str) -> list[str]:
-        """Get all user_ids that had activity in the date range."""
+        """获取在指定日期范围内有过活动的所有 user_id。"""
         ...
 
 
 class ProfileSource(Protocol):
-    """Abstract data source for user profiles."""
+    """用户画像数据的抽象数据源。"""
 
     def fetch_profiles(self, user_ids: list[str]) -> list[UserProfile]:
-        """Retrieve profiles for the given user IDs."""
+        """批量获取指定 user_id 列表的用户画像。"""
         ...

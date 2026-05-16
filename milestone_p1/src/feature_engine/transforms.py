@@ -1,13 +1,12 @@
-"""Feature computation module.
+"""特征计算模块。
 
-This is the core of the pipeline — where raw events and profiles
-are transformed into feature vectors. This mirrors what you'd do
-with Spark's groupBy, agg, window functions, and StringIndexer.
+这是流水线的核心——将原始事件和用户画像转换为一维特征向量。
+对应 Spark 中的 groupBy、agg、窗口函数（window function）和 StringIndexer。
 
-Key Python production practices demonstrated:
-  - TypeVar/Generic for reusable utilities
-  - Generator functions for memory-efficient streaming
-  - Explicit error handling at data boundaries
+本模块展示的生产级 Python 实践：
+  - 生成器函数（generator）用于内存高效的数据流式处理
+  - assert isinstance 作为 mypy 类型守卫（type guard）
+  - 在数据边界进行显式错误处理
 """
 
 from collections import defaultdict
@@ -30,39 +29,41 @@ def compute_windowed_features(
     short_window_days: int = 7,
     long_window_days: int = 30,
 ) -> dict[str, WindowedFeature]:
-    """Compute rolling-window aggregations for each user.
+    """为每个用户计算滚动时间窗口的聚合特征。
 
-    This replaces what in Spark would be:
+    这是替代 Spark 中以下写法的纯 Python 实现：
       df.groupBy("user_id")
         .agg(
-            sum(when(col("event_type")=="click",1)
-                .when(col("timestamp")>=window_start,1)
+            sum(when(col("event_type")=="click", 1)
+                .when(col("timestamp")>=window_start, 1)
                 .otherwise(0)).alias("click_count_7d"),
             ...
         )
 
-    The Spark version is declarative (describe what you want).
-    The pure Python version is imperative — but with type safety
-    the compiler catches schema mismatches at dev time rather
-    than runtime.
+    关键区别：
+      Spark 版本是声明式的——你描述"要什么结果"。
+      纯 Python 版本是命令式的——你描述"怎么做"。
+      但因为有 TypedDict + mypy strict，编译器在开发期就能捕获 schema
+      不匹配的错误，而不像 Spark 要等到运行时。
 
     Args:
-        events: All raw events in the window period.
-        user_ids: Which users to compute features for.
-        reference_date: The "as of" date for computing lookback windows.
-        short_window_days: Short lookback (default 7 days).
-        long_window_days: Long lookback (default 30 days).
+        events: 窗口期内的所有原始事件。
+        user_ids: 需要计算特征的用户列表。
+        reference_date: 参考日期（ISO 8601 格式），窗口以此为基准向前推算。
+        short_window_days: 短窗口天数，默认 7 天。
+        long_window_days: 长窗口天数，默认 30 天。
 
     Returns:
-        Dict mapping user_id -> WindowedFeature.
+        user_id -> WindowedFeature 的映射字典。
     """
     ref_date = datetime.fromisoformat(reference_date)
     short_start = ref_date - timedelta(days=short_window_days)
     long_start = ref_date - timedelta(days=long_window_days)
 
-    # Initialize accumulators for each user
-    # Using defaultdict for clean accumulation — equivalent to Spark's
-    # groupBy + agg pattern but explicit about initial values.
+    # 为每个用户初始化累加器
+    # 使用 dict 而非 defaultdict，是因为我们需要显式声明初始值类型。
+    # 这对应 Spark groupBy + agg 的初始化阶段。
+    # 注意：distinct_items 用 set 来去重，最后再转成 count。
     accumulators: dict[str, dict[str, float | int | set[str]]] = {
         uid: {
             "click_count_7d": 0,
@@ -92,6 +93,7 @@ def compute_windowed_features(
 
         if event["event_type"] == "click":
             if in_short:
+                # 类型守卫：mypy 需要通过 assert isinstance 来窄化 union 类型
                 c7 = acc["click_count_7d"]
                 assert isinstance(c7, int)
                 acc["click_count_7d"] = c7 + 1
@@ -116,7 +118,7 @@ def compute_windowed_features(
                 acc["purchase_count_30d"] = p30 + 1
                 acc["total_spend_30d"] = s30 + event["value"]
 
-            # Track distinct items (use set, then convert to count)
+            # 追踪去重商品：用 set 记录，最后转换成数量
             if in_short:
                 di7 = acc["distinct_items_7d"]
                 assert isinstance(di7, set)
@@ -126,9 +128,10 @@ def compute_windowed_features(
                 assert isinstance(di30, set)
                 di30.add(event["item_id"])
 
-    # Build output — converting sets to counts
+    # 组装输出：将 set 转为长度计数
     result: dict[str, WindowedFeature] = {}
     for uid, acc in accumulators.items():
+        # 先提取到带类型守卫的局部变量，mypy 才能正确窄化类型
         c7 = acc["click_count_7d"]
         c30 = acc["click_count_30d"]
         p7 = acc["purchase_count_7d"]
@@ -166,15 +169,23 @@ def stream_events_in_batches(
     events: list[RawEvent],
     batch_size: int = 10000,
 ) -> Iterator[list[RawEvent]]:
-    """Stream events in fixed-size batches.
+    """将事件列表按固定批次大小流式输出。
 
-    Generator function — yields control back to the caller after each batch.
-    In Spark this would be handled by the execution engine automatically;
-    in pure Python we manage memory explicitly.
+    生成器函数（generator）——每次 yield 后控制权交还给调用方。
+    在 Spark 中这由执行引擎自动处理；在纯 Python 中需要显式管理内存。
 
-    Use case: when events don't fit in memory, stream from disk/S3
-    and process in chunks. This generator pattern is a Pythonic way
-    to implement backpressure-aware pipelines.
+    使用场景：当事件量超出内存时，从磁盘/S3 分批读取并处理。
+    这个生成器模式是 Python 中实现背压感知（backpressure-aware）
+    流水线的惯用方式。
+
+    类比：就像 Spark 中每个 partition 逐个处理，但由你手动控制粒度。
+
+    Args:
+        events: 全量事件列表。
+        batch_size: 每批的大小，默认 10000。
+
+    Yields:
+        大小为 batch_size 的事件批次（最后一批可能不足）。
     """
     for i in range(0, len(events), batch_size):
         yield events[i : i + batch_size]
@@ -186,22 +197,31 @@ def encode_categorical(
     *,
     default: int = -1,
 ) -> int:
-    """Encode a categorical string value to integer.
+    """将类别字符串编码为整数。
 
-    Equivalent to Spark's StringIndexer + one-hot encoding prep.
-    Returns default (-1) for unseen categories — in production you'd
-    log a warning and potentially route to a dead-letter queue.
+    等价于 Spark 的 StringIndexer + 后续 one-hot 编码的准备工作。
+    未见过（unknown）的类别返回 default（默认 -1）——
+    在生产环境中，此时应该记录一条 warning 日志，
+    并可能将数据路由到死信队列（dead-letter queue）做人工审查。
+
+    Args:
+        value: 原始类别字符串。
+        mapping: 类别字符串到整数的映射表。
+        default: 未匹配时的默认值。
+
+    Returns:
+        编码后的整数值。
 
     Raises:
-        ValueError: If the mapping is empty.
+        ValueError: 当 mapping 为空字典时抛出。
     """
     if not mapping:
-        raise ValueError("encoding mapping must not be empty")
+        raise ValueError("编码映射表不能为空")
     return mapping.get(value, default)
 
 
-# Pre-defined encoding maps — in production these come from
-# a configuration file or a trained encoder artifact.
+# 预定义的编码映射 —— 生产环境中这些值应从配置文件
+# 或训练好的 encoder artifact 中加载，而非硬编码。
 AGE_GROUP_ENCODING: dict[str, int] = {
     "18-24": 0,
     "25-34": 1,
@@ -222,29 +242,28 @@ def build_feature_vector(
     *,
     label_lookahead_events: list[RawEvent] | None = None,
 ) -> FeatureVector:
-    """Assemble the final feature vector from windowed features + profile.
+    """组装最终特征向量：窗口聚合 + 用户画像 → 一条 FeatureVector。
 
-    Combines:
-      1. Raw window aggregations (from compute_windowed_features)
-      2. Derived features (growth ratios)
-      3. Encoded categoricals (from user profile)
-      4. Label (from future events, if provided)
+    组装过程包含：
+      1. 原始窗口聚合特征（来自 compute_windowed_features）
+      2. 衍生特征：7天/30天增长率
+      3. 编码后的类别特征（年龄组、城市等级）
+      4. 标签：未来7天是否有购买（来自 lookahead 窗口）
 
     Args:
-        windowed: Pre-computed window aggregation.
-        profile: User demographic profile.
-        label_lookahead_events: Events in the 7-day lookahead window
-            for computing the supervised learning label.
+        windowed: 已计算好的窗口聚合特征。
+        profile: 用户画像数据。
+        label_lookahead_events: 参考日期后 7 天内的未来事件，
+            用于计算监督学习标签。None 表示无标签（如预测阶段）。
 
     Returns:
-        A complete FeatureVector ready for model consumption.
+        完整的 FeatureVector，可直接供模型消费。
     """
-    # Derived features: growth ratios
-    # Guard against division by zero — if 30d is 0, growth is 0 (not infinity).
+    # 衍生特征：增长率。分母为 0 时返回 0.0，避免 inf。
     click_growth = _safe_ratio(windowed["click_count_7d"], windowed["click_count_30d"])
     spend_growth = _safe_ratio(windowed["total_spend_7d"], windowed["total_spend_30d"])
 
-    # Label: did the user make any purchase in the lookahead window?
+    # 标签：lookahead 窗口内是否存在购买事件？
     label = 0
     if label_lookahead_events:
         label = 1 if any(e["event_type"] == "purchase" for e in label_lookahead_events) else 0
@@ -269,7 +288,7 @@ def build_feature_vector(
 
 
 def _safe_ratio(numerator: int | float, denominator: int | float) -> float:
-    """Compute numerator/denominator, returning 0.0 when denominator is 0."""
+    """安全除法：分子/分母，分母为 0 时返回 0.0 而非抛出异常。"""
     if denominator == 0:
         return 0.0
     return float(numerator) / float(denominator)

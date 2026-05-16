@@ -119,7 +119,7 @@ class TestEncodeCategorical:
         assert encode_categorical("unknown", CITY_TIER_ENCODING, default=99) == 99
 
     def test_empty_mapping_raises(self) -> None:
-        with pytest.raises(ValueError, match="must not be empty"):
+        with pytest.raises(ValueError, match="不能为空"):
             encode_categorical("x", {})
 
 
