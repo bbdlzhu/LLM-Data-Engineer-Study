@@ -6,7 +6,7 @@
 
 **参考灵感**: 感谢 [@chenran818/CFP-Study](https://github.com/chenran818/CFP-Study) 提供的 AI 驱动学习范式。
 
-**关于我**: 暨南大学学生，大数据背景，正在系统学习 LLM 数据工程。欢迎交流:
+**关于我**: 大数据背景，正在系统学习 LLM 数据工程。欢迎交流:
 - GitHub: [@bbdlzhu](https://github.com/bbdlzhu)
 
 ---
