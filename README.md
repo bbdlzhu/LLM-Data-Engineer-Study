@@ -141,8 +141,4 @@ README.md                      # 本文件
 - 先动手，再理解理论
 - 聚焦实际工程需求，不学无用的屠龙术
 
----
 
-## 致谢
-
-本仓库的学习范式完全借鉴自 [@chenran818/CFP-Study](https://github.com/chenran818/CFP-Study)，感谢 chenran818 开创的 AI 驱动学习方法论——证明了 Claude Code 可以成为一个优秀的私人导师。
