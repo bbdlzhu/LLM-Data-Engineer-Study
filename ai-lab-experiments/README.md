@@ -8,6 +8,7 @@
 |------|------|------|----------|------|
 | 实验 1 | 2026-10-10 | 13-gram 污染检测：揪出混进预训练数据的测试题 | 数据污染与测试集泄露防范 | [lab01-contamination](lab01-contamination) |
 | 实验 2 | 2026-10-17 | 混合检索：BM25 + RRF 融合 | RAG 检索增强生成 | [lab02-bm25-rrf](lab02-bm25-rrf) |
+| 实验 3 | 2026-10-24 | 给标注员做“质检”（Cohen's kappa + 金标准埋点 + 双人仲裁） | 人工标注流水线 | [lab03-annotation-qa](lab03-annotation-qa) |
 
 ## 怎么用
 
